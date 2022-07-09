@@ -1,0 +1,36 @@
+// Start the logic
+
+L 20 
+T MW100
+
+//Load the necessary values into the needed memory locations. 
+L 1
+T MW110
+L 2
+T MW120
+L 3
+T MW130
+
+//Calculate the average of the time values
+L MW110
+L MW120
++I
+L MW130
++I
+L 3
+/I 
+T MW150
+
+//Calculate the result of the math.
+L 2
+L MW100
+*I
+T MW160
+L MW150
+L MW150
+*I
+T MW170
+L MW160
+L MW170
+/I
+T MW200
