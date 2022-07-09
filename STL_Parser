@@ -1,0 +1,153 @@
+#Video prep to show the starting work of some code to simulate a Step 7 PLC, and to demonstrate object oriented programming
+
+#I can show my attempts to do the code in a procedural style, and explain pass-by-value and pass-by-reference
+#Point out shortcomings that I'm aware of
+#Consider creating comments in Russian and recording the video in Russian
+#Show a screenshot of STL
+#Show the Step 7 STL documentation from Google (is this allowed?). Find the Russian version.
+
+import os   #Used to clear the screen
+
+#Create my object
+class PLC_emulator:
+    """ This class sets up the basic memory structure and methods required for my PLC """
+
+    def __init__(self, acc1, acc2, mw100, mw110, mw120, mw130, mw150, mw160, mw170, mw200):
+        self.accumulators = [acc1, acc2]
+        self.memory = [mw100, mw110, mw120, mw130, mw150, mw160, mw170, mw200]
+                
+    def Load(self, load_parameter):                             #This method takes the value in ACC1 and moves it into ACC2, then it moves the passed value into ACC1.
+        #Set the self.memory from the specific memory of the instance
+        match load_parameter:
+            case 101:
+                self.accumulators[1] = self.accumulators[0]
+                self.accumulators[0] = self.memory[0]
+            case 102: 
+                self.accumulators[1] = self.accumulators[0]
+                self.accumulators[0] = self.memory[1]
+            case 103:
+                self.accumulators[1] = self.accumulators[0]
+                self.accumulators[0] = self.memory[2]
+            case 104:
+                self.accumulators[1] = self.accumulators[0]
+                self.accumulators[0] = self.memory[3]            
+            case 105:
+                self.accumulators[1] = self.accumulators[0]
+                self.accumulators[0] = self.memory[4]            
+            case 106:
+                self.accumulators[1] = self.accumulators[0]
+                self.accumulators[0] = self.memory[5]
+            case 107:
+                self.accumulators[1] = self.accumulators[0]
+                self.accumulators[0] = self.memory[6]
+            case 108:
+                self.accumulators[1] = self.accumulators[0]
+                self.accumulators[0] = self.memory[7]
+            case unknown_command:
+                self.accumulators[1] = self.accumulators[0]
+                self.accumulators[0] = load_parameter
+
+        
+    def Transfer(self, memory_address):                         #This method takes the value in ACC1 and moves it into the passed memory address, which in a Siemens PLC represents a physical location of memory.
+        #self.memory[memory_address] = self.accumulators[0]
+        match memory_address:
+            case 101:
+                self.memory[0] = self.accumulators[0]
+            case 102:
+                self.memory[1] = self.accumulators[0]
+            case 103:
+                self.memory[2] = self.accumulators[0]
+            case 104:
+                self.memory[3] = self.accumulators[0]
+            case 105:
+                self.memory[4] = self.accumulators[0]
+            case 106:
+                self.memory[5] = self.accumulators[0]
+            case 107:
+                self.memory[6] = self.accumulators[0]
+            case 108:
+                self.memory[7] = self.accumulators[0]
+        
+    def myAddition(self):                         #This method adds the values in ACC1 and ACC2 and stores the result in ACC1.
+        acc1 = self.accumulators[0]
+        acc2 = self.accumulators[1]
+        self.accumulators[0] = acc1 + acc2
+        
+    def myDivision(self):                         #This method divides ACC2 by ACC1 and stores the result in ACC1.
+        self.accumulators[0] = self.accumulators[1] / self.accumulators[0]
+        
+    def myMultiplication(self):                   #This method multiplies ACC1 by ACC2 and stores the result in ACC1.
+        self.accumulators[0] = self.accumulators[1] * self.accumulators[0]
+        
+#Instantiate my object with the initialized values
+#For this simple example, I will just hard code in the necessary values:
+#Height = 20 meters, Time 1 = 3 seconds, Time 2 = 2 seconds, Time 3 = 1 second. The remaining memory addresses are initialized to zero.
+#mw100 = 
+plc1 = PLC_emulator(0.1, 0.2, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 2.0)
+
+        
+#Change to variables to make the layout closer to STL
+T = plc1.Transfer
+L = plc1.Load
+myAdd = plc1.myAddition
+div = plc1.myDivision
+mult = plc1.myMultiplication
+
+MW100 = 101
+MW110 = 102
+MW120 = 103
+MW130 = 104
+MW150 = 105
+MW160 = 106
+MW170 = 107
+MW200 = 108
+
+#Begin the STL logic
+
+#Clear the screen automatically, because I don't like doing it during testing.
+os.system('cls')
+
+print()
+print("\nStarting values: ", plc1.memory)
+
+#Set the height
+L(20)       #L 20
+T(MW100)    #T MW100
+
+#Set the three measured time values
+L(1)        #L 1
+T(MW110)    #T MW110
+L(2)        #L 2
+T(MW120)    #T MW120
+L(3)        #L 3
+T(MW130)    #T MW130
+
+#Calculate the average of time
+L(MW110)    #L MW110
+L(MW120)    #L MW120
+myAdd()     # +I
+L(MW130)    #L MW130
+myAdd()     # +I
+L(3)        #L 3
+div()       # /I
+T(MW150)    #T MW 150
+
+#Calculate the result of the math
+L(2)        #L 2
+L(MW100)    #L MW100
+mult()      # *I
+T(MW160)    #T MW160
+L(MW150)    #L MW150
+L(MW150)    #L MW150
+mult()      # *I 
+T(MW170)    #T MW 170
+L(MW160)    #L MW160
+L(MW170)    #L MW170
+div()       # /I
+T(MW200)    #T MW200                #This is the final result
+
+print("\n\nAt this point the memory bank should have the values: 20, 1, 2, 3, 2, 40 4, 10, and it has the values: ", plc1.memory)
+print("\nEnding values: ", plc1.memory)
+print("\nThe experimentally measured and calculated value for g is: ", plc1.memory[7])
+
+print()
